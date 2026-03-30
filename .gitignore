@@ -1,0 +1,43 @@
+# Node dependencies
+frontend/node_modules/
+
+# Python virtual environment
+backend/.venv/
+myenv/
+**/venv/
+**/.venv/
+
+# Environment files
+.env
+*.env
+
+# Build outputs
+frontend/dist/
+frontend/build/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Coverage
+coverage/
+**/coverage/
+
+# Anything else to ignore
+*.sqlite3
+*.db
+

@@ -1,7 +1,7 @@
 services:
   # Backend API service
   - type: web
-    name: medigenius-api
+    name: arogyamitra-api
     runtime: docker
     dockerContext: ./backend
     dockerfile: Dockerfile
@@ -18,13 +18,13 @@ services:
 
   # Frontend static service
   - type: static
-    name: medigenius-web
+    name: arogyamitra-web
     runtime: node
     buildCommand: cd frontend && npm install && npm run build
     publishPath: ./frontend/dist
     envVars:
       - key: VITE_API_URL
         fromService:
-          name: medigenius-api
+          name: arogyamitra-api
           type: web
           property: host

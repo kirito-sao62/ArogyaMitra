@@ -17,11 +17,11 @@ services:
         value: /app
 
   # Frontend static service
-  - type: static
+  - type: web
     name: arogyamitra-web
-    runtime: node
+    runtime: static
     buildCommand: cd frontend && npm install && npm run build
-    publishPath: ./frontend/dist
+    staticPublishPath: ./frontend/dist
     envVars:
       - key: VITE_API_URL
         fromService:

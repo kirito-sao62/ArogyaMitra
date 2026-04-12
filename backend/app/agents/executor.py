@@ -1,7 +1,4 @@
-"""
-MediGenius — agents/executor.py
-ExecutorAgent: synthesizes the final response using the LLM and gathered context.
-"""
+
 
 from app.core.logging_config import logger
 from app.core.state import AgentState

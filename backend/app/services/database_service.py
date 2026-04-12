@@ -3,7 +3,7 @@ MediGenius — services/database_service.py
 DatabaseService: all CRUD operations for chat history.
 """
 
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy import delete, desc, func, select
 from sqlalchemy.orm import Session
@@ -11,6 +11,8 @@ from sqlalchemy.orm import Session
 from app.core.logging_config import logger
 from app.db.session import SessionLocal, engine
 from app.models.message import Base, Message
+from app.models.vital import Vital
+from app.models.medication import Medication
 
 
 class DatabaseService:
@@ -89,6 +91,96 @@ class DatabaseService:
             session.execute(delete(Message).where(Message.session_id == session_id))
             session.commit()
 
+    def log_vital(
+        self,
+        user_id: str,
+        weight: Optional[float] = None,
+        sleep_hours: Optional[float] = None,
+        water_intake: Optional[float] = None,
+    ) -> Dict:
+        logger.debug("Logging vital for user %s", user_id)
+        with self.get_session() as session:
+            vital = Vital(
+                user_id=user_id,
+                weight=weight,
+                sleep_hours=sleep_hours,
+                water_intake=water_intake
+            )
+            session.add(vital)
+            session.commit()
+            session.refresh(vital)
+            return vital.to_dict()
+
+    def get_vitals(self, user_id: str, days: int = 30) -> List[Dict]:
+        from datetime import datetime, timedelta
+        cutoff = datetime.utcnow() - timedelta(days=days)
+        with self.get_session() as session:
+            stmt = (
+                select(Vital)
+                .where(Vital.user_id == user_id)
+                .where(Vital.timestamp >= cutoff)
+                .order_by(Vital.timestamp)
+            )
+            return [v.to_dict() for v in session.execute(stmt).scalars().all()]
+
+    def delete_vital(self, vital_id: int) -> bool:
+        with self.get_session() as session:
+            vital = session.get(Vital, vital_id)
+            if vital:
+                session.delete(vital)
+                session.commit()
+                return True
+            return False
+
+    def delete_all_vitals(self, user_id: str) -> int:
+        from sqlalchemy import delete
+        with self.get_session() as session:
+            stmt = delete(Vital).where(Vital.user_id == user_id)
+            result = session.execute(stmt)
+            session.commit()
+            session.commit()
+            return result.rowcount
+
+    # --- Medication Methods ---
+    def add_medication(self, user_id: str, name: str, dosage: str, frequency: str, reminder_times: list) -> Dict:
+        logger.debug("Adding medication for user %s", user_id)
+        with self.get_session() as session:
+            medication = Medication(
+                user_id=user_id,
+                name=name,
+                dosage=dosage,
+                frequency=frequency,
+                reminder_times=",".join(reminder_times),
+                last_taken=None
+            )
+            session.add(medication)
+            session.commit()
+            session.refresh(medication)
+            return medication.to_dict()
+
+    def get_medications(self, user_id: str) -> List[Dict]:
+        with self.get_session() as session:
+            stmt = select(Medication).where(Medication.user_id == user_id)
+            return [m.to_dict() for m in session.execute(stmt).scalars().all()]
+
+    def update_medication_status(self, medication_id: int, last_taken: str) -> Dict[str, Any]:
+        with self.get_session() as session:
+            med = session.get(Medication, medication_id)
+            if not med:
+                return {}
+            med.last_taken = last_taken
+            session.commit()
+            session.refresh(med)
+            return med.to_dict()
+
+    def delete_medication(self, medication_id: int) -> bool:
+        with self.get_session() as session:
+            med = session.get(Medication, medication_id)
+            if med:
+                session.delete(med)
+                session.commit()
+                return True
+            return False
 
 # Module-level singleton
 db_service = DatabaseService()

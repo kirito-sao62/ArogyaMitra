@@ -16,6 +16,11 @@
 // ══════════════════════════════════════════════════════════════
 import { useState, useEffect, useRef, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
+import HospitalsTab from './HospitalsTab';
+import NewsTab from './NewsTab';
+import VitalsTab from './VitalsTab';
+import MedicationsTab from './MedicationsTab';
+import DietPlannerTab from './DietPlannerTab';
 import './index.css';
 
 // ══════════════════════════════════════════════════════════════
@@ -354,10 +359,10 @@ function Sidebar({ sidebarOpen, sessions, currentSessionId, onNewChat, onLoadSes
                 {translations[language].language}:
               </label>
               <select value={language} onChange={(e) => onLanguageChange(e.target.value)} className="language-select">
-                <option value="en">{translations[language].english}</option>
-                <option value="hi">{translations[language].hindi}</option>
-                <option value="te">{translations[language].telugu}</option>
-                <option value="ta">{translations[language].tamil}</option>
+                <option value="en">English</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+                <option value="te">తెలుగు (Telugu)</option>
+                <option value="ta">தமிழ் (Tamil)</option>
               </select>
             </div>
             <div className="setting-item voice-setting">
@@ -725,9 +730,6 @@ function InputArea({ inputValue, setInputValue, onSend, isTyping, isRecording, t
     <div className="input-area">
       <div className="input-wrapper">
         <div className="input-container glass-effect">
-          <button className="input-btn" title="Attach file">
-            <i className="fas fa-paperclip" />
-          </button>
           <textarea
             ref={inputRef}
             className="message-input"
@@ -782,6 +784,7 @@ function useIsMobile(breakpoint = 768) {
 
 export default function App() {
   // ── State ──────────────────────────────────────────────────
+  const [activeTab, setActiveTab] = useState('chat'); // 'chat' | 'hospitals' | 'news'
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'en');
   const [voiceQuality, setVoiceQuality] = useState(() => localStorage.getItem('voiceQuality') || 'auto');
@@ -1194,34 +1197,84 @@ export default function App() {
             </div>
           </header>
 
-          {/* Chat Area */}
-          <ChatArea
-            messages={messages}
-            isTyping={isTyping}
-            showWelcome={showWelcome}
-            onQuickQuestion={handleQuickQuestion}
-            chatAreaRef={chatAreaRef}
-            language={language}
-            onShowToast={showToast}
-            voiceQuality={voiceQuality}
-            playingIndex={playingIndex}
-            onSpeakStart={handleSpeakStart}
-            onSpeakStop={handleSpeakStop}
-          />
+          {/* Tab Navigation */}
+          <div className="tab-navigation">
+            <button
+              className={`tab-btn ${activeTab === 'chat' ? 'active' : ''}`}
+              onClick={() => setActiveTab('chat')}
+            >
+              <i className="fas fa-comment-medical" /> Chat
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'hospitals' ? 'active' : ''}`}
+              onClick={() => setActiveTab('hospitals')}
+            >
+              <i className="fas fa-hospital" /> Nearby Hospitals
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'news' ? 'active' : ''}`}
+              onClick={() => setActiveTab('news')}
+            >
+              <i className="fas fa-newspaper" /> Vaccination News
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'vitals' ? 'active' : ''}`}
+              onClick={() => setActiveTab('vitals')}
+            >
+              <i className="fas fa-heartbeat" /> Vitals Dashboard
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'medications' ? 'active' : ''}`}
+              onClick={() => setActiveTab('medications')}
+            >
+              <i className="fas fa-pills" /> Medications
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'diet' ? 'active' : ''}`}
+              onClick={() => setActiveTab('diet')}
+            >
+              <i className="fas fa-utensils" /> AI Diet Planner
+            </button>
+          </div>
 
-          {/* Input Area */}
-          <InputArea
-            inputValue={inputValue}
-            setInputValue={setInputValue}
-            onSend={() => sendMessage()}
-            isTyping={isTyping}
-            isRecording={isRecording}
-            toggleVoiceInput={toggleVoiceInput}
-            inputRef={inputRef}
-            language={language}
-            translations={translations}
-          />
-
+          {/* Tab Content */}
+          <div className="tab-content">
+            {activeTab === 'chat' && (
+              <>
+                <ChatArea
+                  messages={messages}
+                  isTyping={isTyping}
+                  showWelcome={showWelcome}
+                  onQuickQuestion={handleQuickQuestion}
+                  chatAreaRef={chatAreaRef}
+                  language={language}
+                  onShowToast={showToast}
+                  voiceQuality={voiceQuality}
+                  playingIndex={playingIndex}
+                  onSpeakStart={handleSpeakStart}
+                  onSpeakStop={handleSpeakStop}
+                />
+                <InputArea
+                  inputValue={inputValue}
+                  setInputValue={setInputValue}
+                  onSend={() => sendMessage()}
+                  isTyping={isTyping}
+                  isRecording={isRecording}
+                  toggleVoiceInput={toggleVoiceInput}
+                  inputRef={inputRef}
+                  language={language}
+                  translations={translations}
+                />
+              </>
+            )}
+            {activeTab === 'hospitals' && (
+              <HospitalsTab showToast={showToast} translations={translations} language={language} />
+            )}
+            {activeTab === 'news' && <NewsTab showToast={showToast} />}
+            {activeTab === 'vitals' && <VitalsTab />}
+            {activeTab === 'medications' && <MedicationsTab />}
+            {activeTab === 'diet' && <DietPlannerTab />}
+          </div>
         </main>
       </div>
 
